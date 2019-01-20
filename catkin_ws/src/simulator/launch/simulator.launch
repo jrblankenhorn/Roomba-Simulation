@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+  <!--SIMULATOR NODE-->
+  <arg name="world_file" default="$(find simulator)/share/world.jpeg"/>
+  <arg name="roomba_file" default="$(find simulator)/share/roomba.jpeg"/>
+  <arg name="roomba_viz_file" default="$(find simulator)/share/roomba_viz.jpeg"/>
+  <arg name="ultrasonic_file" default="$(find simulator)/share/ultrasonic.jpeg"/>
+  <arg name="recording_file" default="$(find simulator)/share/recording.jpeg"/>
+  <node pkg="simulator" type="simulator_node" name="simulator_node" output="screen" args="$(arg world_file) $(arg roomba_file) $(arg  roomba_viz_file) $(arg ultrasonic_file) $(arg recording_file)">
+    <param name="robot_radius" value="20"/>
+  </node>
+
+  <!--NAVIGATOR-->
+  <node pkg="navigator" type="navigator_node" name="navigator_node" output="screen"/>
+
+  <!--DYNAMIC RECONFIGURE-->
+  <arg name="perspective" default="$(find simulator)/share/simulator.perspective"/>
+  <node name="rqt_gui" pkg="rqt_gui" type="rqt_gui" output="screen" args="--perspective-file $(arg perspective)"/>
+</launch>
