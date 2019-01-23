@@ -6,6 +6,7 @@ Navigator::Navigator(ros::NodeHandle &nh)
     m_bumper_sub = nh.subscribe<std_msgs::Bool>("/bumper", 10, &Navigator::bumperCallback, this);
     m_max_vel_sub = nh.subscribe<std_msgs::Float32>("/max_vel", 10, &Navigator::maxVelCallback, this);
     m_max_range_sub = nh.subscribe<std_msgs::Float32>("/max_obs_range", 10, &Navigator::maxRangeCallback, this);
+    m_aggressiveness_sub = nh.subscribe<std_msgs::Float32>("/aggressiveness", 10, &Navigator::aggressivenessCallback, this);
     m_vel_pub = nh.advertise<geometry_msgs::Twist>("/velocity", 10);    
     m_vel.linear.x = 0;
     m_vel.angular.z = 0;
@@ -51,12 +52,12 @@ void Navigator::maneuver(const double &range, const double &angle)
         if(angle < M_PI && angle > 0)
         {
             m_vel.linear.x = m_max_vel;
-            m_vel.angular.z = m_max_vel / 5;
+            m_vel.angular.z = m_max_vel * m_aggressiveness;
         }
         else if(angle > M_PI)
         {
             m_vel.linear.x = m_max_vel;
-            m_vel.angular.z = -m_max_vel / 5;
+            m_vel.angular.z = -m_max_vel * m_aggressiveness;
         }
         else
         {
@@ -107,4 +108,9 @@ void Navigator::maxVelCallback(const std_msgs::Float32::ConstPtr &msg)
 void Navigator::maxRangeCallback(const std_msgs::Float32::ConstPtr &msg)
 {
     m_max_obstacle_range = msg->data;
+}
+
+void Navigator::aggressivenessCallback(const std_msgs::Float32::ConstPtr &msg)
+{
+    m_aggressiveness = (msg->data) / 10;
 }

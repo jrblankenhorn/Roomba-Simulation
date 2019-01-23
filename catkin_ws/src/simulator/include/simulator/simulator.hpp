@@ -49,11 +49,12 @@ private:
     void drawRecordViz();
     void drawBumperViz();
     void drawRoombaViz();
-    void pubPose() const;
+    void pubPose();
     void pubScan() const;
     void pubMaxRange() const;
     void pubBumper() const;
     void pubMaxVel() const;
+    void pubAggressiveness() const;
     void pubSensorViz() const;
 
     //pubsub
@@ -65,6 +66,7 @@ private:
     ros::Publisher m_max_range_pub;
     ros::Publisher m_bumper_pub;
     ros::Publisher m_max_vel_pub;
+    ros::Publisher m_aggressiveness_pub;
     ros::Publisher m_viz_pub;
 
     //images
@@ -79,6 +81,7 @@ private:
 
     //pose and sensor data
     geometry_msgs::Pose m_roomba_pose;
+    geometry_msgs::Pose m_roomba_pose_corrected;
     sensor_msgs::LaserScan m_scan;
     bool m_bumper = false;
     ros::Time m_prev_time;
@@ -89,6 +92,7 @@ private:
     dynamic_reconfigure::Server<simulator::SimulatorConfig> server;
     dynamic_reconfigure::Server<simulator::SimulatorConfig>::CallbackType f;    
     double m_max_vel = 0;
+    double m_aggressiveness = 0;
     double m_max_range = 0;
     bool m_trace_path = false;
     bool m_show_scan = false;

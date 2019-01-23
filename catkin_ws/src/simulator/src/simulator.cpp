@@ -9,6 +9,7 @@ Simulator::Simulator(ros::NodeHandle &nh, ros::NodeHandle &pnh, const std::vecto
     m_max_range_pub = nh.advertise<std_msgs::Float32>("/max_obs_range", 100);
     m_bumper_pub = nh.advertise<std_msgs::Bool>("/bumper", 100);
     m_max_vel_pub = nh.advertise<std_msgs::Float32>("/max_vel", 100);
+    m_aggressiveness_pub = nh.advertise<std_msgs::Float32>("/aggressiveness", 100);
     m_viz_pub = nh.advertise<sensor_msgs::Image>("/sensor_viz", 100);
     f = boost::bind(&Simulator::dynReconfigureCallback, this, _1, _2);
     server.setCallback(f);
@@ -49,6 +50,7 @@ void Simulator::updateSim()
     pubMaxRange();
     pubBumper();
     pubMaxVel();
+    pubAggressiveness();
     updateSensorViz();
     pubSensorViz();
 }
@@ -185,7 +187,7 @@ void Simulator::drawPath()
 {
     for(auto pose : m_path)
     {
-        m_sim_img.at<cv::Vec3b>(pose.position.x, pose.position.y) = cv::Vec3b(0, 255, 255);
+        m_sim_img.at<cv::Vec3b>(pose.position.x, pose.position.y) = cv::Vec3b(255, 0, 255);
     }
 }
 
@@ -226,8 +228,8 @@ const double Simulator::getRange(const double &angle)
         {
             cv::Vec3b &new_pixel = m_sim_img.at<cv::Vec3b>(int(y), int(x));
             new_pixel[0] = 0;
-            new_pixel[1] = 0;
-            new_pixel[2] = 0;
+            new_pixel[1] = 175;
+            new_pixel[2] = 255;
         }
     }
     return sqrt(pow(x - m_roomba_pose.position.y, 2) + pow(y - m_roomba_pose.position.x, 2)) - m_robot_rad;
@@ -339,9 +341,12 @@ void Simulator::drawRoombaViz()
     m_roomba_viz_img_.copyTo(m_sensor_img(cv::Rect(y, x, m_roomba_viz_img_.cols, m_roomba_viz_img_.rows)));
 }
 
-void Simulator::pubPose() const
+void Simulator::pubPose()
 {
-    m_pose_pub.publish(m_roomba_pose);
+    m_roomba_pose_corrected = m_roomba_pose;
+    m_roomba_pose_corrected.position.x = m_roomba_pose.position.y;
+    m_roomba_pose_corrected.position.y = m_roomba_pose.position.x;
+    m_pose_pub.publish(m_roomba_pose_corrected);
 }
 
 void Simulator::pubScan() const
@@ -370,6 +375,13 @@ void Simulator::pubMaxVel() const
     m_max_vel_pub.publish(vel);
 }
 
+void Simulator::pubAggressiveness() const
+{
+    std_msgs::Float32 aggresiveness;
+    aggresiveness.data = m_aggressiveness;
+    m_aggressiveness_pub.publish(aggresiveness);
+}
+
 void Simulator::pubSensorViz() const
 {
     cv_bridge::CvImage img;
@@ -392,6 +404,7 @@ void Simulator::velCallback(const geometry_msgs::Twist::ConstPtr &msg)
 void Simulator::dynReconfigureCallback(simulator::SimulatorConfig &config, uint32_t level)
 {
     m_max_vel = config.velocity;
+    m_aggressiveness = config.turning_aggressiveness;
     m_max_range = config.max_obstacle_range;
     m_trace_path = config.show_path;
     m_show_scan = config.show_scan;
@@ -428,6 +441,8 @@ void Simulator::dynReconfigureCallback(simulator::SimulatorConfig &config, uint3
         config.reset_sim = false;
         m_max_vel = 0;
         config.velocity = 0;
+        m_aggressiveness = 0.5;
+        config.turning_aggressiveness = 0.5;
         m_max_range = 25;
         config.max_obstacle_range = 25;
         ROS_INFO_STREAM("Simulation Reset!");

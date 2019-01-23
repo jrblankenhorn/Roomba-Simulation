@@ -20,6 +20,7 @@ private:
     void bumperCallback(const std_msgs::Bool::ConstPtr &msg);
     void maxVelCallback(const std_msgs::Float32::ConstPtr &msg);
     void maxRangeCallback(const std_msgs::Float32::ConstPtr &msg);
+    void aggressivenessCallback(const std_msgs::Float32::ConstPtr &msg);
 
     void checkScan();
     void maneuver(const double &range, const double &angle);
@@ -31,6 +32,7 @@ private:
     ros::Subscriber m_scan_sub;
     ros::Subscriber m_bumper_sub;
     ros::Subscriber m_max_vel_sub;
+    ros::Subscriber m_aggressiveness_sub;
     ros::Subscriber m_max_range_sub;
     ros::Publisher m_vel_pub;
 
@@ -38,6 +40,7 @@ private:
     std_msgs::Bool::ConstPtr m_bumper;
     geometry_msgs::Twist m_vel;
     double m_max_vel;
+    double m_aggressiveness;
 
     bool m_have_scan = false;
     bool m_have_bumper = false;
